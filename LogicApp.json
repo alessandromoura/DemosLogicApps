@@ -1,0 +1,130 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Condition": {
+                "actions": {
+                    "Set_status_=_approved": {
+                        "inputs": {
+                            "name": "status",
+                            "value": "Approved"
+                        },
+                        "runAfter": {},
+                        "trackedProperties": {
+                            "Status_approved_inputs": "@{action().inputs.value}",
+                            "Status_approved_outputs_Type1": "@{action().outputs.body.value}",
+                            "Status_approved_outputs_Type2": "@{outputs('Set_status_=_approved')['body']['value']}",
+                            "Status_approved_outputs_Type3": "@{outputs('Set_status_=_approved')?['body']?['value']}",
+                            "Status_approved_outputs_Type4": "@{outputs('Set_status_=_approved')?['value']}"
+                        },
+                        "type": "SetVariable"
+                    }
+                },
+                "else": {
+                    "actions": {
+                        "Set_status_=_denied": {
+                            "inputs": {
+                                "name": "status",
+                                "value": "Denied"
+                            },
+                            "runAfter": {},
+                            "trackedProperties": {
+                                "Status_denied_inputs": "@{action().inputs.value}",
+                                "Status_denied_outputs_Type1": "@{action().outputs.body.value}",
+                                "Status_denied_outputs_Type2": "@{outputs('Set_status_=_denied')['body']['value']}",
+                                "Status_denied_outputs_Type3": "@{outputs('Set_status_=_denied')?['body']?['value']}",
+                                "Status_denied_outputs_Type4": "@{outputs('Set_status_=_denied')?['value']}"
+                            },
+                            "type": "SetVariable"
+                        }
+                    }
+                },
+                "expression": {
+                    "and": [
+                        {
+                            "less": [
+                                "@triggerBody()?['Amount']",
+                                5000
+                            ]
+                        }
+                    ]
+                },
+                "runAfter": {
+                    "Initialize_variable": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "If"
+            },
+            "Initialize_variable": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "status",
+                            "type": "String"
+                        }
+                    ]
+                },
+                "runAfter": {},
+                "trackedProperties": {
+                    "Amount": "@{triggerBody()?['Amount']}",
+                    "Client": "@{triggerBody()?['Client']}",
+                    "OrderId": "@{triggerBody()?['OrderId']}"
+                },
+                "type": "InitializeVariable"
+            },
+            "Response": {
+                "inputs": {
+                    "body": {
+                        "status": "@{variables('status')}"
+                    },
+                    "schema": {
+                        "properties": {
+                            "status": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "statusCode": 200
+                },
+                "kind": "Http",
+                "runAfter": {
+                    "Condition": [
+                        "Succeeded"
+                    ]
+                },
+                "trackedProperties": {
+                    "Status": "ok",
+                    "Status_inputs": "@{action().inputs.body.status}"
+                },
+                "type": "Response"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "parameters": {},
+        "triggers": {
+            "manual": {
+                "inputs": {
+                    "schema": {
+                        "properties": {
+                            "Amount": {
+                                "type": "number"
+                            },
+                            "Client": {
+                                "type": "string"
+                            },
+                            "OrderId": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "kind": "Http",
+                "type": "Request"
+            }
+        }
+    }
+}
